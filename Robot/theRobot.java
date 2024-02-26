@@ -1,15 +1,11 @@
 
-import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.lang.*;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import java.io.*;
-import java.util.Random;
-import java.util.Scanner;
 import java.net.*;
 
 
@@ -21,6 +17,10 @@ class mySmartMap extends JComponent implements KeyListener {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
+    public static final int OPEN_SPACE = 0;
+    public static final int WALL = 1;
+    public static final int STAIRWELL = 2;
+    public static final int GOAL = 3;
 
     int currentKey;
 
@@ -28,14 +28,14 @@ class mySmartMap extends JComponent implements KeyListener {
     double sqrWdth, sqrHght;
     Color gris = new Color(170,170,170);
     Color myWhite = new Color(220, 220, 220);
-    World mundo;
+    WorldServer mundo;
     
     int gameStatus;
 
     double[][] probs;
     double[][] vals;
     
-    public mySmartMap(int w, int h, World wld) {
+    public mySmartMap(int w, int h, WorldServer wld) {
         mundo = wld;
         probs = new double[mundo.width][mundo.height];
         vals = new double[mundo.width][mundo.height];
@@ -252,7 +252,7 @@ public class theRobot extends JFrame {
     static mySmartMap myMaps; // instance of the class that draw everything to the GUI
     String mundoName;
     
-    World mundo; // mundo contains all the information about the world.  See World.java
+    WorldServer mundo; // mundo contains all the information about the world.  See World.java
     double moveProb, sensorAccuracy;  // stores probabilies that the robot moves in the intended direction
                                       // and the probability that a sonar reading is correct, respectively
     
@@ -285,7 +285,7 @@ public class theRobot extends JFrame {
         initClient();
     
         // Read in the world
-        mundo = new World(mundoName);
+        mundo = new WorldServer(mundoName);
         
         // set up the GUI that displays the information you compute
         int width = 500;
@@ -407,10 +407,79 @@ public class theRobot extends JFrame {
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
-        // your code
+        predictBeliefs(action);
+        System.out.println("Sonars: " + sonars);
+
+
+        //updateBeliefsBasedOnSonar(sonars);
 
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
+    }
+
+    private void predictBeliefs(int action) {
+        // Move probabilities based on the action (considering walls and stairwells)
+        double[][] newBeliefs = new double[mundo.width][mundo.height];
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                int newX = i;
+                int newY = j;
+
+                switch (action) {
+                    case 0:  // Move left
+                            newX = Math.max(0, i - 1);
+                    case 1: // Move right
+                            newX = Math.min(mundo.width - 1, i + 1);
+                    case 2: // Move up
+                            newY = Math.max(0, j - 1);
+                    case 3: // Move down
+                            newY = Math.min(mundo.height - 1, j + 1);
+
+                    // case 4: // Stay, no change in position
+                }
+
+                // Consider obstacles, avoid stairwells, and walls
+                if (!isObstacle(newX, newY) && !isStairwell(newX, newY)) {
+                    newBeliefs[newX][newY] = probs[i][j];
+                }
+            }
+        }
+
+        probs = newBeliefs;
+    }
+
+    private void updateBeliefsBasedOnSonar(String sonars) {
+        System.out.println("Sonars: " + sonars);
+        // Update beliefs based on sonar measurements
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                // Update probability based on sonar measurement at position i, j
+                double sensorModel = calculateSensorModel(sonars.charAt(i * mundo.height + j));
+                probs[i][j] *= sensorModel;
+            }
+        }
+    }
+
+    private double calculateSensorModel(char sonarMeasurement) {
+        // Example: Calculate sensor model based on sonar measurement
+        // Adjust this based on your sensor model
+        if (sonarMeasurement == '1') {
+            return 0.8;  // Adjust based on your sensor model
+        } else {
+            return 0.2;  // Adjust based on your sensor model
+        }
+    }
+
+    private boolean isObstacle(int x, int y) {
+        // Example: Check if the position (x, y) is an obstacle
+        // Implement your obstacle detection logic
+        return false;
+    }
+
+    private boolean isStairwell(int x, int y) {
+        // Example: Check if the position (x, y) is a stairwell
+        // Implement your stairwell detection logic
+        return false;
     }
     
     // This is the function you'd need to write to make the robot move using your AI;

@@ -1,20 +1,13 @@
-import java.awt.*;
-import java.util.*;
-import java.awt.event.*;
 import java.lang.*;
 import java.io.*;
-import java.net.*;
-import javax.swing.*;
-import java.math.*;
-import java.text.*;
 
-public class World {
+public class WorldServer {
     int width, height;
     int[][] grid;
 
-    World(String worldFile) {
+    WorldServer(String worldFile) {
         try {
-            FileReader fileReader = new FileReader("../Mundos/" + worldFile);
+            FileReader fileReader = new FileReader("Mundos/" + worldFile);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             
             width = Integer.parseInt(bufferedReader.readLine());

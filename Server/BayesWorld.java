@@ -1,8 +1,5 @@
 
-import javax.swing.*;
-import java.awt.event.*;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.lang.*;
 import javax.swing.JComponent;
@@ -23,9 +20,9 @@ class MyCanvas extends JComponent {
     
     int xpos, ypos;
 
-    World mundo;
+    WorldServer mundo;
     
-    public MyCanvas(int w, int h, World wld, int _x, int _y) {
+    public MyCanvas(int w, int h, WorldServer wld, int _x, int _y) {
         mundo = wld;
         winWidth = w;
         winHeight = h;
@@ -86,7 +83,7 @@ public class BayesWorld extends JFrame {
 
     Color bkgroundColor = new Color(230,230,230);
     static MyCanvas canvas;
-    World mundo;
+    WorldServer mundo;
     int xpos, ypos;
     double moveProb, sensorAccuracy;
     
@@ -100,7 +97,7 @@ public class BayesWorld extends JFrame {
     public BayesWorld(String fnombre, double _moveProb, double _sensorAccuracy, String _known) {
         rand = new Random();
     
-        mundo = new World(fnombre);
+        mundo = new WorldServer(fnombre);
         int width = 500;
         int height = 500;
         moveProb = _moveProb;
