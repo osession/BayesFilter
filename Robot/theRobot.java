@@ -247,6 +247,11 @@ public class theRobot extends JFrame {
     public static final int WEST = 3;
     public static final int STAY = 4;
 
+    public static final int OPEN_SPACE = 0;
+    public static final int WALL = 1;
+    public static final int STAIRWELL = 2;
+    public static final int GOAL = 3;
+
     Color bkgroundColor = new Color(230,230,230);
     
     static mySmartMap myMaps; // instance of the class that draw everything to the GUI
@@ -407,17 +412,26 @@ public class theRobot extends JFrame {
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
-        predictBeliefs(action);
+        probs = predictBeliefs(action);
         System.out.println("Sonars: " + sonars);
-
-
-        //updateBeliefsBasedOnSonar(sonars);
-
-        myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
+        double[][] more_probs = updateBeliefsBasedOnSonar(sonars, probs);
+        // normalize
+        double total_denominator = 0;
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                total_denominator += more_probs[i][j];
+            }
+        }
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                more_probs[i][j] = more_probs[i][j] / total_denominator;
+            }
+        }
+        myMaps.updateProbs(more_probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
     }
 
-    private void predictBeliefs(int action) {
+    private double[][] predictBeliefs(int action) {
         // Move probabilities based on the action (considering walls and stairwells)
         double[][] newBeliefs = new double[mundo.width][mundo.height];
         for (int i = 0; i < mundo.width; i++) {
@@ -439,36 +453,69 @@ public class theRobot extends JFrame {
                 }
 
                 // Consider obstacles, avoid stairwells, and walls
-                if (!isObstacle(newX, newY) && !isStairwell(newX, newY)) {
-                    newBeliefs[newX][newY] = probs[i][j];
+                if (mundo.grid[newX][newY] != WALL && mundo.grid[newX][newY] != STAIRWELL) {
+                    newBeliefs[newX][newY] = probs[i][j] * this.moveProb;
                 }
             }
         }
 
         probs = newBeliefs;
+        return probs;
     }
 
-    private void updateBeliefsBasedOnSonar(String sonars) {
+    private double[][] updateBeliefsBasedOnSonar(String sonars, double[][] probs) {
         System.out.println("Sonars: " + sonars);
         // Update beliefs based on sonar measurements
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 // Update probability based on sonar measurement at position i, j
-                double sensorModel = calculateSensorModel(sonars.charAt(i * mundo.height + j));
-                probs[i][j] *= sensorModel;
+//                double sensorModel = calculateSensorModel(sonars.charAt(i * mundo.height + j));
+                // North Sensor
+                if ((j + 1) < mundo.height) {
+                    if (mundo.grid[i][j + 1] == sonars.charAt(0)) {
+                        probs[i][j] *= sensorAccuracy;
+                    } else {
+                        probs[i][j] *= (1 - sensorAccuracy);
+                    }
+                }
+                // South Sensor
+                if ((j - 1) > mundo.height) {
+                    if (mundo.grid[i][j - 1] == sonars.charAt(1)) {
+                        probs[i][j] *= sensorAccuracy;
+                    } else {
+                        probs[i][j] *= (1 - sensorAccuracy);
+                    }
+                }
+                // East Sensor
+                if ((i + 1) < mundo.width) {
+                    if (mundo.grid[i + 1][j] == sonars.charAt(2)) {
+                        probs[i][j] *= sensorAccuracy;
+                    } else {
+                        probs[i][j] *= (1 - sensorAccuracy);
+                    }
+                }
+                // West Sensor
+                if ((i - 1) > mundo.width) {
+                    if (mundo.grid[i - 1][j] == sonars.charAt(3)) {
+                        probs[i][j] *= sensorAccuracy;
+                    } else {
+                        probs[i][j] *= (1 - sensorAccuracy);
+                    }
+                }
             }
         }
+        return probs;
     }
 
-    private double calculateSensorModel(char sonarMeasurement) {
-        // Example: Calculate sensor model based on sonar measurement
-        // Adjust this based on your sensor model
-        if (sonarMeasurement == '1') {
-            return 0.8;  // Adjust based on your sensor model
-        } else {
-            return 0.2;  // Adjust based on your sensor model
-        }
-    }
+//    private double calculateSensorModel(char sonarMeasurement) {
+//        // Example: Calculate sensor model based on sonar measurement
+//        // Adjust this based on your sensor model
+//        if (sonarMeasurement == '1') {
+//            return this.sensorAccuracy;
+//        } else {
+//            return (1- this.sensorAccuracy);
+//        }
+//    }
 
     private boolean isObstacle(int x, int y) {
         // Example: Check if the position (x, y) is an obstacle
