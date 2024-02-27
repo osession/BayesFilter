@@ -412,22 +412,23 @@ public class theRobot extends JFrame {
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
+        System.out.println("something");
         probs = predictBeliefs(action);
         System.out.println("Sonars: " + sonars);
-        double[][] more_probs = updateBeliefsBasedOnSonar(sonars, probs);
+        probs = updateBeliefsBasedOnSonar(sonars);
         // normalize
         double total_denominator = 0;
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
-                total_denominator += more_probs[i][j];
+                total_denominator += probs[i][j];
             }
         }
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
-                more_probs[i][j] = more_probs[i][j] / total_denominator;
+                probs[i][j] = probs[i][j] / total_denominator;
             }
         }
-        myMaps.updateProbs(more_probs); // call this function after updating your probabilities so that the
+        myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
     }
 
@@ -463,7 +464,8 @@ public class theRobot extends JFrame {
         return probs;
     }
 
-    private double[][] updateBeliefsBasedOnSonar(String sonars, double[][] probs) {
+    private double[][] updateBeliefsBasedOnSonar(String sonars) {
+        double[][] newBeliefs = new double[mundo.width][mundo.height];
         System.out.println("Sonars: " + sonars);
         // Update beliefs based on sonar measurements
         for (int i = 0; i < mundo.width; i++) {
@@ -473,37 +475,38 @@ public class theRobot extends JFrame {
                 // North Sensor
                 if ((j + 1) < mundo.height) {
                     if (mundo.grid[i][j + 1] == sonars.charAt(0)) {
-                        probs[i][j] *= sensorAccuracy;
+                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] *= (1 - sensorAccuracy);
+                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
                 // South Sensor
-                if ((j - 1) > mundo.height) {
+                if ((j - 1) >= 0) {
                     if (mundo.grid[i][j - 1] == sonars.charAt(1)) {
-                        probs[i][j] *= sensorAccuracy;
+                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] *= (1 - sensorAccuracy);
+                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
                 // East Sensor
                 if ((i + 1) < mundo.width) {
                     if (mundo.grid[i + 1][j] == sonars.charAt(2)) {
-                        probs[i][j] *= sensorAccuracy;
+                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] *= (1 - sensorAccuracy);
+                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
                 // West Sensor
-                if ((i - 1) > mundo.width) {
+                if ((i - 1) >= 0) {
                     if (mundo.grid[i - 1][j] == sonars.charAt(3)) {
-                        probs[i][j] *= sensorAccuracy;
+                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] *= (1 - sensorAccuracy);
+                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
             }
         }
+        probs = newBeliefs;
         return probs;
     }
 
