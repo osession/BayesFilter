@@ -412,8 +412,8 @@ public class theRobot extends JFrame {
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
-        System.out.println("something");
-        probs = predictBeliefs(action);
+//        System.out.println("something");
+//        probs = predictBeliefs(action);
         System.out.println("Sonars: " + sonars);
         probs = updateBeliefsBasedOnSonar(sonars);
         // normalize
@@ -435,6 +435,7 @@ public class theRobot extends JFrame {
     private double[][] predictBeliefs(int action) {
         // Move probabilities based on the action (considering walls and stairwells)
         double[][] newBeliefs = new double[mundo.width][mundo.height];
+        // i is columns, j is rows, so it's backwards from intuition
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 int newX = i;
@@ -446,9 +447,11 @@ public class theRobot extends JFrame {
                     case 1: // Move right
                             newX = Math.min(mundo.width - 1, i + 1);
                     case 2: // Move up
-                            newY = Math.max(0, j - 1);
-                    case 3: // Move down
+//                            newY = Math.max(0, j - 1);
                             newY = Math.min(mundo.height - 1, j + 1);
+                    case 3: // Move down
+                            newY = Math.max(0, j - 1);
+//                            newY = Math.min(mundo.height - 1, j + 1);
 
                     // case 4: // Stay, no change in position
                 }
@@ -465,48 +468,59 @@ public class theRobot extends JFrame {
     }
 
     private double[][] updateBeliefsBasedOnSonar(String sonars) {
-        double[][] newBeliefs = new double[mundo.width][mundo.height];
+//        double[][] newBeliefs = new double[mundo.width][mundo.height];
         System.out.println("Sonars: " + sonars);
         // Update beliefs based on sonar measurements
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 // Update probability based on sonar measurement at position i, j
 //                double sensorModel = calculateSensorModel(sonars.charAt(i * mundo.height + j));
+                if (mundo.grid[i][j] != 0) {
+                    continue;
+                }
                 // North Sensor
-                if ((j + 1) < mundo.height) {
-                    if (mundo.grid[i][j + 1] == sonars.charAt(0)) {
-                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
+                if ((j - 1) >= 0) {
+                    int grid_val = mundo.grid[i][j - 1];
+                    int sensor_val = sonars.charAt(0) - '0';
+                    if (grid_val == sensor_val) {
+                        probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
                 // South Sensor
-                if ((j - 1) >= 0) {
-                    if (mundo.grid[i][j - 1] == sonars.charAt(1)) {
-                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
+                if ((j + 1) < mundo.height) {
+                    int grid_val = mundo.grid[i][j + 1];
+                    int sensor_val = sonars.charAt(1) - '0';
+                    if (grid_val == sensor_val) {
+                        probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
                 // East Sensor
                 if ((i + 1) < mundo.width) {
-                    if (mundo.grid[i + 1][j] == sonars.charAt(2)) {
-                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
+                    int grid_val = mundo.grid[i + 1][j];
+                    int sensor_val = sonars.charAt(2) - '0';
+                    if (grid_val == sensor_val) {
+                        probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
                 // West Sensor
                 if ((i - 1) >= 0) {
-                    if (mundo.grid[i - 1][j] == sonars.charAt(3)) {
-                        newBeliefs[i][j] = probs[i][j] * sensorAccuracy;
+                    int grid_val = mundo.grid[i - 1][j];
+                    int sensor_val = sonars.charAt(3)  - '0';
+                    if (grid_val == sensor_val) {
+                        probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        newBeliefs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
                     }
                 }
             }
         }
-        probs = newBeliefs;
+//        probs = newBeliefs;
         return probs;
     }
 
