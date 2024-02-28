@@ -412,8 +412,8 @@ public class theRobot extends JFrame {
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
-//        System.out.println("something");
-//        probs = predictBeliefs(action);
+        System.out.println("something");
+        probs = predictBeliefs(action);
         System.out.println("Sonars: " + sonars);
         probs = updateBeliefsBasedOnSonar(sonars);
         // normalize
@@ -432,38 +432,88 @@ public class theRobot extends JFrame {
                                    //  new probabilities will show up in the probability map on the GUI
     }
 
+//    private double[][] predictBeliefs(int action) {
+//        // Move probabilities based on the action (considering walls and stairwells)
+//        double[][] newBeliefs = new double[mundo.width][mundo.height];
+//        // i is columns, j is rows, so it's backwards from intuition
+//        for (int i = 0; i < mundo.width; i++) {
+//            for (int j = 0; j < mundo.height; j++) {
+//                int newX = i;
+//                int newY = j;
+//
+//                switch (action) {
+//                    case 0:  // Move left
+//                            newX = Math.max(0, i - 1);
+//                    case 1: // Move right
+//                            newX = Math.min(mundo.width - 1, i + 1);
+//                    case 2: // Move up
+////                            newY = Math.max(0, j - 1);
+//                            newY = Math.min(mundo.height - 1, j + 1);
+//                    case 3: // Move down
+//                            newY = Math.max(0, j - 1);
+////                            newY = Math.min(mundo.height - 1, j + 1);
+//
+//                    // case 4: // Stay, no change in position
+//                }
+//
+//                // Consider obstacles, avoid stairwells, and walls
+//                if (mundo.grid[newX][newY] != WALL && mundo.grid[newX][newY] != STAIRWELL) {
+//                    newBeliefs[newX][newY] = probs[i][j] * this.moveProb;
+//                }
+//            }
+//        }
+
+//        probs = newBeliefs;
+//        return probs;
+//    }
+
     private double[][] predictBeliefs(int action) {
-        // Move probabilities based on the action (considering walls and stairwells)
-        double[][] newBeliefs = new double[mundo.width][mundo.height];
-        // i is columns, j is rows, so it's backwards from intuition
+        System.out.println("Action: " + action);
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
-                int newX = i;
-                int newY = j;
-
-                switch (action) {
-                    case 0:  // Move left
-                            newX = Math.max(0, i - 1);
-                    case 1: // Move right
-                            newX = Math.min(mundo.width - 1, i + 1);
-                    case 2: // Move up
-//                            newY = Math.max(0, j - 1);
-                            newY = Math.min(mundo.height - 1, j + 1);
-                    case 3: // Move down
-                            newY = Math.max(0, j - 1);
-//                            newY = Math.min(mundo.height - 1, j + 1);
-
-                    // case 4: // Stay, no change in position
+                if (mundo.grid[i][j] != 0) {
+                    continue;
                 }
-
-                // Consider obstacles, avoid stairwells, and walls
-                if (mundo.grid[newX][newY] != WALL && mundo.grid[newX][newY] != STAIRWELL) {
-                    newBeliefs[newX][newY] = probs[i][j] * this.moveProb;
+                // move up
+                if ((j - 1) >= 0) {
+                    if (action == NORTH) {
+                        probs[i][j - 1] *= moveProb;
+                    } else {
+                        probs[i][j - 1] *= (1 - moveProb/4);
+                    }
+                }
+                // move down
+                if ((j + 1) < mundo.height) {
+                    if (action == SOUTH) {
+                        probs[i][j + 1] *= moveProb;
+                    } else {
+                        probs[i][j + 1] *= (1 - moveProb/4);
+                    }
+                }
+                // move left
+                if ((i - 1) >= 0) {
+                    if (action == WEST) {
+                        probs[i - 1][j] *= moveProb;
+                    } else {
+                        probs[i - 1][j] *= (1 - moveProb/4);
+                    }
+                }
+                // move right
+                if ((i + 1) < mundo.width) {
+                    if (action == EAST) {
+                        probs[i + 1][j] *= moveProb;
+                    } else {
+                        probs[i + 1][j] *= (1 - moveProb/4);
+                    }
+                }
+                // stay put
+                if (action == STAY) {
+                    probs[i][j] *= moveProb;
+                } else {
+                    probs[i][j] *= (1 - moveProb/4);
                 }
             }
         }
-
-        probs = newBeliefs;
         return probs;
     }
 
@@ -485,7 +535,7 @@ public class theRobot extends JFrame {
                     if (grid_val == sensor_val) {
                         probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
                     }
                 }
                 // South Sensor
@@ -495,7 +545,7 @@ public class theRobot extends JFrame {
                     if (grid_val == sensor_val) {
                         probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
                     }
                 }
                 // East Sensor
@@ -505,7 +555,7 @@ public class theRobot extends JFrame {
                     if (grid_val == sensor_val) {
                         probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
                     }
                 }
                 // West Sensor
@@ -515,7 +565,7 @@ public class theRobot extends JFrame {
                     if (grid_val == sensor_val) {
                         probs[i][j] = probs[i][j] * sensorAccuracy;
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy);
+                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
                     }
                 }
             }
