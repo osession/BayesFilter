@@ -17,10 +17,7 @@ class mySmartMap extends JComponent implements KeyListener {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
-    public static final int OPEN_SPACE = 0;
-    public static final int WALL = 1;
-    public static final int STAIRWELL = 2;
-    public static final int GOAL = 3;
+
 
     int currentKey;
 
@@ -246,7 +243,6 @@ public class theRobot extends JFrame {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
-
     public static final int OPEN_SPACE = 0;
     public static final int WALL = 1;
     public static final int STAIRWELL = 2;
@@ -412,12 +408,22 @@ public class theRobot extends JFrame {
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
-        System.out.println("something");
         probs = predictBeliefs(action);
         System.out.println("Sonars: " + sonars);
+        double total_denominator = 0;
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                total_denominator += probs[i][j];
+            }
+        }
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                probs[i][j] = probs[i][j] / total_denominator;
+            }
+        }
         probs = updateBeliefsBasedOnSonar(sonars);
         // normalize
-        double total_denominator = 0;
+        total_denominator = 0;
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 total_denominator += probs[i][j];
@@ -469,6 +475,7 @@ public class theRobot extends JFrame {
 
     private double[][] predictBeliefs(int action) {
         System.out.println("Action: " + action);
+        double[][] newBeliefs = new double[mundo.width][mundo.height];
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 if (mundo.grid[i][j] != 0) {
@@ -477,43 +484,44 @@ public class theRobot extends JFrame {
                 // move up
                 if ((j - 1) >= 0) {
                     if (action == NORTH) {
-                        probs[i][j - 1] *= moveProb;
+                        newBeliefs[i][j - 1] += (moveProb * probs[i][j - 1]);
                     } else {
-                        probs[i][j - 1] *= (1 - moveProb/4);
+                        newBeliefs[i][j - 1] += (((1 - moveProb)/4) * probs[i][j - 1]);
                     }
                 }
                 // move down
                 if ((j + 1) < mundo.height) {
                     if (action == SOUTH) {
-                        probs[i][j + 1] *= moveProb;
+                        newBeliefs[i][j + 1] += (moveProb * probs[i][j + 1]);
                     } else {
-                        probs[i][j + 1] *= (1 - moveProb/4);
+                        newBeliefs[i][j + 1] += (((1 - moveProb)/4) * probs[i][j + 1]);
                     }
                 }
                 // move left
                 if ((i - 1) >= 0) {
                     if (action == WEST) {
-                        probs[i - 1][j] *= moveProb;
+                        newBeliefs[i - 1][j] += (moveProb * probs[i - 1][j]);
                     } else {
-                        probs[i - 1][j] *= (1 - moveProb/4);
+                        newBeliefs[i - 1][j] += (((1 - moveProb)/4) * probs[i - 1][j]);
                     }
                 }
                 // move right
                 if ((i + 1) < mundo.width) {
                     if (action == EAST) {
-                        probs[i + 1][j] *= moveProb;
+                        newBeliefs[i + 1][j] += (moveProb * probs[i + 1][j]);
                     } else {
-                        probs[i + 1][j] *= (1 - moveProb/4);
+                        newBeliefs[i + 1][j] += (((1 - moveProb)/4) * probs[i + 1][j]);
                     }
                 }
                 // stay put
                 if (action == STAY) {
-                    probs[i][j] *= moveProb;
+                    newBeliefs[i][j] += (moveProb * probs[i][j]);
                 } else {
-                    probs[i][j] *= (1 - moveProb/4);
+                    newBeliefs[i][j] += (((1 - moveProb)/4) * probs[i][j]);
                 }
             }
         }
+        probs = newBeliefs;
         return probs;
     }
 
@@ -533,9 +541,9 @@ public class theRobot extends JFrame {
                     int grid_val = mundo.grid[i][j - 1];
                     int sensor_val = sonars.charAt(0) - '0';
                     if (grid_val == sensor_val) {
-                        probs[i][j] = probs[i][j] * sensorAccuracy;
+                        probs[i][j] += (probs[i][j] * sensorAccuracy);
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
+                        probs[i][j] += probs[i][j] * (1 - sensorAccuracy)/4;
                     }
                 }
                 // South Sensor
@@ -543,9 +551,9 @@ public class theRobot extends JFrame {
                     int grid_val = mundo.grid[i][j + 1];
                     int sensor_val = sonars.charAt(1) - '0';
                     if (grid_val == sensor_val) {
-                        probs[i][j] = probs[i][j] * sensorAccuracy;
+                        probs[i][j] += (probs[i][j] * sensorAccuracy);
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
+                        probs[i][j] += probs[i][j] * (1 - sensorAccuracy)/4;
                     }
                 }
                 // East Sensor
@@ -553,9 +561,9 @@ public class theRobot extends JFrame {
                     int grid_val = mundo.grid[i + 1][j];
                     int sensor_val = sonars.charAt(2) - '0';
                     if (grid_val == sensor_val) {
-                        probs[i][j] = probs[i][j] * sensorAccuracy;
+                        probs[i][j] += (probs[i][j] * sensorAccuracy);
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
+                        probs[i][j] += probs[i][j] * (1 - sensorAccuracy)/4;
                     }
                 }
                 // West Sensor
@@ -563,9 +571,9 @@ public class theRobot extends JFrame {
                     int grid_val = mundo.grid[i - 1][j];
                     int sensor_val = sonars.charAt(3)  - '0';
                     if (grid_val == sensor_val) {
-                        probs[i][j] = probs[i][j] * sensorAccuracy;
+                        probs[i][j] += (probs[i][j] * sensorAccuracy);
                     } else {
-                        probs[i][j] = probs[i][j] * (1 - sensorAccuracy/4);
+                        probs[i][j] += probs[i][j] * (1 - sensorAccuracy)/4;
                     }
                 }
             }
@@ -585,15 +593,11 @@ public class theRobot extends JFrame {
 //    }
 
     private boolean isObstacle(int x, int y) {
-        // Example: Check if the position (x, y) is an obstacle
-        // Implement your obstacle detection logic
-        return false;
+        return mundo.grid[x][y] == WALL;
     }
 
     private boolean isStairwell(int x, int y) {
-        // Example: Check if the position (x, y) is a stairwell
-        // Implement your stairwell detection logic
-        return false;
+        return mundo.grid[x][y] == STAIRWELL;
     }
     
     // This is the function you'd need to write to make the robot move using your AI;
