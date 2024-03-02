@@ -484,33 +484,33 @@ public class theRobot extends JFrame {
                 // move up
                 if ((j - 1) >= 0) {
                     if (action == NORTH) {
-                        newBeliefs[i][j - 1] += (moveProb * probs[i][j - 1]);
+                        newBeliefs[i][j - 1] += (moveProb * probs[i][j]);
                     } else {
-                        newBeliefs[i][j - 1] += (((1 - moveProb)/4) * probs[i][j - 1]);
+                        newBeliefs[i][j - 1] += (((1 - moveProb)/4) * probs[i][j]);
                     }
                 }
                 // move down
                 if ((j + 1) < mundo.height) {
                     if (action == SOUTH) {
-                        newBeliefs[i][j + 1] += (moveProb * probs[i][j + 1]);
+                        newBeliefs[i][j + 1] += (moveProb * probs[i][j]);
                     } else {
-                        newBeliefs[i][j + 1] += (((1 - moveProb)/4) * probs[i][j + 1]);
+                        newBeliefs[i][j + 1] += (((1 - moveProb)/4) * probs[i][j]);
                     }
                 }
                 // move left
                 if ((i - 1) >= 0) {
                     if (action == WEST) {
-                        newBeliefs[i - 1][j] += (moveProb * probs[i - 1][j]);
+                        newBeliefs[i - 1][j] += (moveProb * probs[i][j]);
                     } else {
-                        newBeliefs[i - 1][j] += (((1 - moveProb)/4) * probs[i - 1][j]);
+                        newBeliefs[i - 1][j] += (((1 - moveProb)/4) * probs[i][j]);
                     }
                 }
                 // move right
                 if ((i + 1) < mundo.width) {
                     if (action == EAST) {
-                        newBeliefs[i + 1][j] += (moveProb * probs[i + 1][j]);
+                        newBeliefs[i + 1][j] += (moveProb * probs[i][j]);
                     } else {
-                        newBeliefs[i + 1][j] += (((1 - moveProb)/4) * probs[i + 1][j]);
+                        newBeliefs[i + 1][j] += (((1 - moveProb)/4) * probs[i][j]);
                     }
                 }
                 // stay put
