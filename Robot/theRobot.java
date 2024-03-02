@@ -402,9 +402,7 @@ public class theRobot extends JFrame {
         
         myMaps.updateProbs(probs);
     }
-    
-    // TODO: update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
-    //       To do this, you should update the 2D-array "probs"
+
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
@@ -437,41 +435,6 @@ public class theRobot extends JFrame {
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
     }
-
-//    private double[][] predictBeliefs(int action) {
-//        // Move probabilities based on the action (considering walls and stairwells)
-//        double[][] newBeliefs = new double[mundo.width][mundo.height];
-//        // i is columns, j is rows, so it's backwards from intuition
-//        for (int i = 0; i < mundo.width; i++) {
-//            for (int j = 0; j < mundo.height; j++) {
-//                int newX = i;
-//                int newY = j;
-//
-//                switch (action) {
-//                    case 0:  // Move left
-//                            newX = Math.max(0, i - 1);
-//                    case 1: // Move right
-//                            newX = Math.min(mundo.width - 1, i + 1);
-//                    case 2: // Move up
-////                            newY = Math.max(0, j - 1);
-//                            newY = Math.min(mundo.height - 1, j + 1);
-//                    case 3: // Move down
-//                            newY = Math.max(0, j - 1);
-////                            newY = Math.min(mundo.height - 1, j + 1);
-//
-//                    // case 4: // Stay, no change in position
-//                }
-//
-//                // Consider obstacles, avoid stairwells, and walls
-//                if (mundo.grid[newX][newY] != WALL && mundo.grid[newX][newY] != STAIRWELL) {
-//                    newBeliefs[newX][newY] = probs[i][j] * this.moveProb;
-//                }
-//            }
-//        }
-
-//        probs = newBeliefs;
-//        return probs;
-//    }
 
     private double[][] predictBeliefs(int action) {
         System.out.println("Action: " + action);
@@ -526,13 +489,10 @@ public class theRobot extends JFrame {
     }
 
     private double[][] updateBeliefsBasedOnSonar(String sonars) {
-//        double[][] newBeliefs = new double[mundo.width][mundo.height];
-        System.out.println("Sonars: " + sonars);
         // Update beliefs based on sonar measurements
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 // Update probability based on sonar measurement at position i, j
-//                double sensorModel = calculateSensorModel(sonars.charAt(i * mundo.height + j));
                 if (mundo.grid[i][j] != 0) {
                     continue;
                 }
@@ -578,26 +538,7 @@ public class theRobot extends JFrame {
                 }
             }
         }
-//        probs = newBeliefs;
         return probs;
-    }
-
-//    private double calculateSensorModel(char sonarMeasurement) {
-//        // Example: Calculate sensor model based on sonar measurement
-//        // Adjust this based on your sensor model
-//        if (sonarMeasurement == '1') {
-//            return this.sensorAccuracy;
-//        } else {
-//            return (1- this.sensorAccuracy);
-//        }
-//    }
-
-    private boolean isObstacle(int x, int y) {
-        return mundo.grid[x][y] == WALL;
-    }
-
-    private boolean isStairwell(int x, int y) {
-        return mundo.grid[x][y] == STAIRWELL;
     }
     
     // This is the function you'd need to write to make the robot move using your AI;
