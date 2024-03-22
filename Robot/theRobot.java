@@ -7,6 +7,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 
 // This class draws the probability map and value iteration map that you create to the window
@@ -540,13 +541,115 @@ public class theRobot extends JFrame {
         }
         return probs;
     }
-    
+
+
+    // ***********************************************************************************************
+    // Implement value iteration to compute the optimal policy
+    void valueIteration() {
+        double gamma = 0.9; // Discount factor
+        int maxIterations = 1000; // Maximum number of iterations
+        double epsilon = 0.01; // Convergence threshold
+
+        Vs = new double[mundo.width][mundo.height]; // Initialize values
+
+        // Perform value iteration
+        for (int i = 0; i < maxIterations; i++) {
+            double[][] Vsp = new double[mundo.width][mundo.height]; // Temporary array for updated values
+            double delta = 0.0; // Change in value function
+
+            for (int x = 0; x < mundo.width; x++) {
+                for (int y = 0; y < mundo.height; y++) {
+                    if (mundo.grid[x][y] != WALL && mundo.grid[x][y] != STAIRWELL && mundo.grid[x][y] != GOAL) {
+                        double[] expectedRewards = new double[5]; // Rewards for each action
+
+                        // Compute expected rewards for each action
+                        for (int action = 0; action < 5; action++) {
+                            double immediateReward = 0.0;
+
+                            // Compute immediate reward based on action
+                            if (action == STAY) {
+                                immediateReward = -0.1; // Penalize staying in place
+                            } else {
+                                // Implement rewards for other actions as needed
+                            }
+
+                            // Compute expected future reward based on successor states
+                            double futureReward = 0.0;
+                            for (int successorAction = 0; successorAction < 5; successorAction++) {
+                                // Implement transition dynamics and probability calculation
+                            }
+
+                            expectedRewards[action] = immediateReward + gamma * futureReward;
+                        }
+
+                        // Update value function with the maximum expected reward
+                        Vsp[x][y] = Arrays.stream(expectedRewards).max().getAsDouble();
+                        delta = Math.max(delta, Math.abs(Vsp[x][y] - Vs[x][y]));
+                    }
+                }
+            }
+
+            // Update value function
+            Vs = Vsp;
+
+            // Check for convergence
+            if (delta < epsilon) {
+                break;
+            }
+        }
+    }
+    // ***********************************************************************************************
+
     // This is the function you'd need to write to make the robot move using your AI;
     // You do NOT need to write this function for this lab; it can remain as is
     int automaticAction() {
-        
-        return STAY;  // default action for now
+        int robotX = -1;
+        int robotY = -1;
+
+        // Determine robot's current position based on probabilities
+        // For simplicity, assume the position with the highest probability
+        double maxProb = -1.0;
+        for (int x = 0; x < mundo.width; x++) {
+            for (int y = 0; y < mundo.height; y++) {
+                if (probs[x][y] > maxProb) {
+                    maxProb = probs[x][y];
+                    robotX = x;
+                    robotY = y;
+                }
+            }
+        }
+
+        // Determine the action with the maximum value
+        int bestAction = STAY;
+        double maxActionValue = -Double.MAX_VALUE;
+        for (int action = 0; action < 5; action++) {
+            if (isValidAction(robotX, robotY, action)) {
+                // Implement action-value calculation based on the learned value function
+                double actionValue = calculateActionValue(robotX, robotY, action);
+                if (actionValue > maxActionValue) {
+                    maxActionValue = actionValue;
+                    bestAction = action;
+                }
+            }
+        }
+
+        return bestAction;
     }
+
+    // **********************************************************************************************
+    // Helper method to check if an action is valid from a given position
+    boolean isValidAction(int x, int y, int action) {
+        // Implement validation based on the grid world
+        // Check if the action leads to a valid grid cell
+        return true; // Placeholder
+    }
+
+    // Helper method to calculate the value of taking a specific action from a given position
+    double calculateActionValue(int x, int y, int action) {
+        // Implement calculation based on the learned value function
+        return 0.0; // Placeholder
+    }
+    // ***********************************************************************************************
     
     void doStuff() {
         int action;
