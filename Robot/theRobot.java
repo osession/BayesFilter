@@ -551,6 +551,17 @@ public class theRobot extends JFrame {
         double epsilon = 0.01; // Convergence threshold
 
         Vs = new double[mundo.width][mundo.height]; // Initialize values
+        for (int x = 0; x < mundo.width; x++) {
+            for (int y = 0; y < mundo.height; y++) {
+                if (mundo.grid[x][y] == GOAL) {
+                    Vs[x][y] = 100;
+                } else if (mundo.grid[x][y] == STAIRWELL || mundo.grid[x][y] == WALL) {
+                    Vs[x][y] = -20;
+                } else {
+                    Vs[x][y] = -1;
+                }
+            }
+        }
 
         // Perform value iteration
         for (int i = 0; i < maxIterations; i++) {
@@ -560,23 +571,37 @@ public class theRobot extends JFrame {
             for (int x = 0; x < mundo.width; x++) {
                 for (int y = 0; y < mundo.height; y++) {
                     if (mundo.grid[x][y] != WALL && mundo.grid[x][y] != STAIRWELL && mundo.grid[x][y] != GOAL) {
-                        double[] expectedRewards = new double[5]; // Rewards for each action
+                        double[] expectedRewards = new double[4]; // Rewards for each action
 
+                        double immediateReward = Vs[x][y];
                         // Compute expected rewards for each action
-                        for (int action = 0; action < 5; action++) {
-                            double immediateReward = 0.0;
-
-                            // Compute immediate reward based on action
-                            if (action == STAY) {
-                                immediateReward = -0.1; // Penalize staying in place
-                            } else {
-                                // Implement rewards for other actions as needed
-                            }
-
-                            // Compute expected future reward based on successor states
+                        for (int action = 0; action < 4; action++) {
                             double futureReward = 0.0;
-                            for (int successorAction = 0; successorAction < 5; successorAction++) {
-                                // Implement transition dynamics and probability calculation
+                            // Compute immediate reward based on action
+                            if (action == NORTH) {
+                                if (y - 1 >= 0) {
+                                    futureReward = Vs[x][y - 1];
+                                } else { // stay in place
+                                    futureReward = Vs[x][y];
+                                }
+                            } else if (action == SOUTH) {
+                                if (y + 1 < mundo.height) {
+                                    futureReward = Vs[x][y + 1];
+                                } else { // stay in place
+                                    futureReward = Vs[x][y];
+                                }
+                            } else if (action == EAST) {
+                                if (x + 1 < mundo.width) {
+                                    futureReward = Vs[x + 1][y];
+                                } else { // stay in place
+                                    futureReward = Vs[x][y];
+                                }
+                            } else { // action is WEST
+                                if (x - 1 >= 0) {
+                                    futureReward = Vs[x - 1][y];
+                                } else { // stay in place
+                                    futureReward = Vs[x][y];
+                                }
                             }
 
                             expectedRewards[action] = immediateReward + gamma * futureReward;
@@ -603,34 +628,82 @@ public class theRobot extends JFrame {
     // This is the function you'd need to write to make the robot move using your AI;
     // You do NOT need to write this function for this lab; it can remain as is
     int automaticAction() {
-        int robotX = -1;
-        int robotY = -1;
-
-        // Determine robot's current position based on probabilities
-        // For simplicity, assume the position with the highest probability
-        double maxProb = -1.0;
-        for (int x = 0; x < mundo.width; x++) {
-            for (int y = 0; y < mundo.height; y++) {
-                if (probs[x][y] > maxProb) {
-                    maxProb = probs[x][y];
-                    robotX = x;
-                    robotY = y;
-                }
-            }
-        }
-
-        // Determine the action with the maximum value
+//        int robotX = -1;
+//        int robotY = -1;
+//
+//        // Determine robot's current position based on probabilities
+//        // For simplicity, assume the position with the highest probability
+//        double maxProb = -1.0;
+//        for (int x = 0; x < mundo.width; x++) {
+//            for (int y = 0; y < mundo.height; y++) {
+//                if (probs[x][y] > maxProb) {
+//                    maxProb = probs[x][y];
+//                    robotX = x;
+//                    robotY = y;
+//                }
+//            }
+//        }
+//
+//        // Determine the action with the maximum value
+//        int bestAction = STAY;
+//        double maxActionValue = -Double.MAX_VALUE;
+//        for (int action = 0; action < 5; action++) {
+//            if (isValidAction(robotX, robotY, action)) {
+//                // Implement action-value calculation based on the learned value function
+//                double actionValue = calculateActionValue(robotX, robotY, action);
+//                if (actionValue > maxActionValue) {
+//                    maxActionValue = actionValue;
+//                    bestAction = action;
+//                }
+//            }
+//        }
         int bestAction = STAY;
-        double maxActionValue = -Double.MAX_VALUE;
-        for (int action = 0; action < 5; action++) {
-            if (isValidAction(robotX, robotY, action)) {
-                // Implement action-value calculation based on the learned value function
-                double actionValue = calculateActionValue(robotX, robotY, action);
-                if (actionValue > maxActionValue) {
-                    maxActionValue = actionValue;
+        if (knownPosition) {
+            double bestActionValue = Double.NEGATIVE_INFINITY;
+            for (int action = 0; action < 4; action ++) {
+                double reward;
+                if (action == NORTH) {
+                    if (startY - 1 >= 0) {
+                        reward = Vs[startX][startY - 1];
+                    } else { // stay in place
+                        reward = Vs[startX][startY];
+                    }
+                } else if (action == SOUTH) {
+                    if (startY + 1 < mundo.height) {
+                        reward = Vs[startX][startY + 1];
+                    } else { // stay in place
+                        reward = Vs[startX][startY];
+                    }
+                } else if (action == EAST) {
+                    if (startX + 1 < mundo.width) {
+                        reward = Vs[startX + 1][startY];
+                    } else { // stay in place
+                        reward = Vs[startX][startY];
+                    }
+                } else { // action is west
+                    if (startX - 1 >= 0) {
+                        reward = Vs[startX - 1][startY];
+                    } else { // stay in place
+                        reward = Vs[startX][startY];
+                    }
+                }
+
+                if (reward >= bestActionValue) {
+                    bestActionValue = reward;
                     bestAction = action;
                 }
             }
+            if (bestAction == NORTH) {
+                startY -=  1;
+            } else if (bestAction == SOUTH) {
+                startY += 1;
+            } else if (bestAction == EAST) {
+                startX += 1;
+            } else if (bestAction == WEST) {
+                startX -= 1;
+            }
+        } else {
+            // implement this later
         }
 
         return bestAction;
@@ -662,6 +735,7 @@ public class theRobot extends JFrame {
                 if (isManual)
                     action = getHumanAction();  // get the action selected by the user (from the keyboard)
                 else
+                    valueIteration();
                     action = automaticAction(); // TODO: get the action selected by your AI;
                                                 // you'll need to write this function for part III
                 
