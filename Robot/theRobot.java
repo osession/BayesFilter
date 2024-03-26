@@ -573,7 +573,7 @@ public class theRobot extends JFrame {
                     if (mundo.grid[x][y] != WALL && mundo.grid[x][y] != STAIRWELL && mundo.grid[x][y] != GOAL) {
                         double[] expectedRewards = new double[4]; // Rewards for each action
 
-                        double immediateReward = Vs[x][y];
+                        double immediateReward = -1;
                         // Compute expected rewards for each action
                         for (int action = 0; action < 4; action++) {
                             double futureReward = 0.0;
