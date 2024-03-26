@@ -577,7 +577,7 @@ public class theRobot extends JFrame {
                         // Compute expected rewards for each action
                         for (int action = 0; action < 4; action++) {
                             double futureReward = 0.0;
-                            // Compute immediate reward based on action
+                            // Compute future reward based on action
                             if (action == NORTH) {
                                 if (y - 1 >= 0) {
                                     futureReward = Vs[x][y - 1];
@@ -603,13 +603,18 @@ public class theRobot extends JFrame {
                                     futureReward = Vs[x][y];
                                 }
                             }
-
                             expectedRewards[action] = immediateReward + gamma * futureReward;
                         }
 
                         // Update value function with the maximum expected reward
-                        Vsp[x][y] = Arrays.stream(expectedRewards).max().getAsDouble();
+                        System.out.println(Arrays.toString(expectedRewards));
+                        double max_future = Arrays.stream(expectedRewards).max().getAsDouble();
+                        System.out.println(max_future);
+                        Vsp[x][y] = max_future;
                         delta = Math.max(delta, Math.abs(Vsp[x][y] - Vs[x][y]));
+                    } else {
+                        // this is a terminal state and we need to preserve the original reward
+                        Vsp[x][y] = Vs[x][y];
                     }
                 }
             }
@@ -628,35 +633,6 @@ public class theRobot extends JFrame {
     // This is the function you'd need to write to make the robot move using your AI;
     // You do NOT need to write this function for this lab; it can remain as is
     int automaticAction() {
-//        int robotX = -1;
-//        int robotY = -1;
-//
-//        // Determine robot's current position based on probabilities
-//        // For simplicity, assume the position with the highest probability
-//        double maxProb = -1.0;
-//        for (int x = 0; x < mundo.width; x++) {
-//            for (int y = 0; y < mundo.height; y++) {
-//                if (probs[x][y] > maxProb) {
-//                    maxProb = probs[x][y];
-//                    robotX = x;
-//                    robotY = y;
-//                }
-//            }
-//        }
-//
-//        // Determine the action with the maximum value
-//        int bestAction = STAY;
-//        double maxActionValue = -Double.MAX_VALUE;
-//        for (int action = 0; action < 5; action++) {
-//            if (isValidAction(robotX, robotY, action)) {
-//                // Implement action-value calculation based on the learned value function
-//                double actionValue = calculateActionValue(robotX, robotY, action);
-//                if (actionValue > maxActionValue) {
-//                    maxActionValue = actionValue;
-//                    bestAction = action;
-//                }
-//            }
-//        }
         int bestAction = STAY;
         if (knownPosition) {
             double bestActionValue = Double.NEGATIVE_INFINITY;
@@ -704,6 +680,35 @@ public class theRobot extends JFrame {
             }
         } else {
             // implement this later
+            //        int robotX = -1;
+//        int robotY = -1;
+//
+//        // Determine robot's current position based on probabilities
+//        // For simplicity, assume the position with the highest probability
+//        double maxProb = -1.0;
+//        for (int x = 0; x < mundo.width; x++) {
+//            for (int y = 0; y < mundo.height; y++) {
+//                if (probs[x][y] > maxProb) {
+//                    maxProb = probs[x][y];
+//                    robotX = x;
+//                    robotY = y;
+//                }
+//            }
+//        }
+//
+//        // Determine the action with the maximum value
+//        int bestAction = STAY;
+//        double maxActionValue = -Double.MAX_VALUE;
+//        for (int action = 0; action < 5; action++) {
+//            if (isValidAction(robotX, robotY, action)) {
+//                // Implement action-value calculation based on the learned value function
+//                double actionValue = calculateActionValue(robotX, robotY, action);
+//                if (actionValue > maxActionValue) {
+//                    maxActionValue = actionValue;
+//                    bestAction = action;
+//                }
+//            }
+//        }
         }
 
         return bestAction;
@@ -727,7 +732,7 @@ public class theRobot extends JFrame {
     void doStuff() {
         int action;
         
-        //valueIteration();  // TODO: function you will write in Part II of the lab
+        valueIteration();  // TODO: function you will write in Part II of the lab
         initializeProbabilities();  // Initializes the location (probability) map
         
         while (true) {
@@ -735,7 +740,6 @@ public class theRobot extends JFrame {
                 if (isManual)
                     action = getHumanAction();  // get the action selected by the user (from the keyboard)
                 else
-                    valueIteration();
                     action = automaticAction(); // TODO: get the action selected by your AI;
                                                 // you'll need to write this function for part III
                 
